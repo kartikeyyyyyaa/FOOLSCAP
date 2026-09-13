@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { getSupabase, supabaseConfigured } from "./supabase";
+import { describeSupabaseConfig, getSupabase, supabaseConfigured } from "./supabase";
+
+let warned = false;
 
 export interface AuthState {
   /** Supabase user id, or null when signed out or running without a database. */
@@ -21,7 +23,15 @@ export function useAuth() {
 
   useEffect(() => {
     const supabase = getSupabase();
-    if (!supabase) return;
+
+    if (!supabase) {
+      // Once per page load, not once per component using the hook.
+      if (!warned) {
+        warned = true;
+        console.warn(describeSupabaseConfig());
+      }
+      return;
+    }
 
     let active = true;
 
