@@ -1455,3 +1455,198 @@ input.text {
 .dash-empty span { font-size: 13.5px; color: var(--ink-mute); max-width: 46ch; }
 
 .hide { display: none !important; }
+
+/* ==========================================================================
+   ASK
+   A thread, not a chat window: the question is a heading, the answer is the
+   body under it, and the source of the answer is stated before the answer.
+   ========================================================================== */
+
+.ask { display: grid; gap: 18px; padding: 22px var(--gutter) 26px; }
+.ask-intro { display: grid; gap: 6px; }
+.ask-sub { font-size: 13.6px; color: var(--ink-mute); line-height: 1.6; max-width: 70ch; }
+
+.ask-starters { display: flex; flex-wrap: wrap; gap: 7px; }
+
+.ask-thread { display: grid; gap: 22px; }
+.ask-thread:empty { display: none; }
+
+.ask-turn { display: grid; gap: 10px; }
+
+.ask-q {
+  font-size: 15.5px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.45;
+  padding-left: 13px;
+  border-left: 2px solid var(--indigo);
+}
+
+.ask-a { display: grid; gap: 11px; }
+
+.ask-src { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+
+.ask-sec {
+  font-family: var(--mono);
+  font-size: 11.4px;
+  letter-spacing: .01em;
+  color: var(--ink-mute);
+  background: var(--canvas-sink);
+  border-radius: var(--r-field);
+  padding: 4px 9px;
+}
+
+.ask-body {
+  font-size: 14.8px;
+  line-height: 1.72;
+  color: var(--ink-2);
+  max-width: 74ch;
+  white-space: pre-wrap;
+}
+
+.ask-next { display: flex; flex-wrap: wrap; gap: 7px; padding-top: 2px; }
+
+.ask-wait {
+  display: inline-flex; align-items: center; gap: 9px;
+  font-size: 13.4px; color: var(--ink-mute);
+}
+
+.ask-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 9px; align-items: center; }
+.ask-input { font-size: 14.5px; }
+
+@media (max-width: 560px) {
+  .ask-form { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ==========================================================================
+   WATCH
+   The player. Gemini writes the script, the browser speaks it, and the stage
+   holds one idea at a time so the screen is never read aloud twice.
+   ========================================================================== */
+
+.reel, .reel-empty { display: grid; gap: 16px; padding: 22px var(--gutter) 26px; }
+.reel-empty { justify-items: start; }
+.reel-start { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.reel-start .seg { min-width: 260px; }
+.reel-note { font-size: 12.8px; color: var(--ink-mute); line-height: 1.6; max-width: 66ch; }
+
+.reel-stage {
+  position: relative;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-card);
+  background:
+    radial-gradient(120% 90% at 10% 0%, var(--indigo-wash) 0%, transparent 58%),
+    var(--canvas-soft);
+  padding: 26px 26px 20px;
+  display: grid;
+  /* Rows, not flow: the caption stays pinned to the foot of the stage so the
+     line of text does not jump up and down as scenes change height. */
+  grid-template-rows: auto 1fr auto;
+  gap: 16px;
+  min-height: 300px;
+  overflow: hidden;
+}
+
+.reel-meta {
+  display: flex; align-items: baseline; gap: 10px;
+  font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint);
+}
+.reel-count { color: var(--indigo); font-weight: 600; }
+.reel-title { color: var(--ink-mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.reel-slide { display: grid; gap: 14px; align-content: start; }
+
+.reel-h {
+  font-family: var(--display);
+  font-weight: 300;
+  letter-spacing: -.025em;
+  font-size: clamp(25px, 4.4vw, 38px);
+  line-height: 1.12;
+  color: var(--ink);
+  animation: reel-in .5s cubic-bezier(.22, .61, .36, 1) both;
+}
+
+.reel-lines { display: grid; gap: 9px; list-style: none; padding: 0; margin: 0; }
+
+.reel-lines li {
+  position: relative;
+  padding-left: 19px;
+  font-size: 15.4px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  animation: reel-in .5s cubic-bezier(.22, .61, .36, 1) both;
+}
+
+.reel-lines li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: .62em;
+  width: 8px; height: 2px;
+  background: var(--indigo);
+}
+
+@keyframes reel-in {
+  from { opacity: 0; transform: translateY(9px); }
+  to { opacity: 1; transform: none; }
+}
+
+.reel-caption {
+  align-self: end;
+  padding-top: 14px;
+  border-top: 1px solid var(--hairline);
+  font-size: 13.2px;
+  line-height: 1.62;
+  color: var(--ink-mute);
+  max-width: 78ch;
+}
+
+.reel-rail { display: flex; gap: 4px; }
+
+.reel-seg {
+  flex: 1;
+  height: 3px;
+  border-radius: var(--r-pill);
+  background: var(--canvas-sink);
+  overflow: hidden;
+}
+
+.reel-fill {
+  display: block;
+  height: 100%;
+  background: var(--indigo);
+  transform-origin: left center;
+  transform: scaleX(0);
+}
+
+.reel-controls { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+.reel-spacer { flex: 1 1 auto; }
+
+@media (max-width: 560px) {
+  .reel-stage { padding: 20px 18px 16px; min-height: 260px; }
+  .reel-spacer { display: none; }
+}
+
+/* The stage is a reading surface first. Under reduced motion it still shows
+   every word, it just stops moving while doing it. */
+@media (prefers-reduced-motion: reduce) {
+  .reel-h, .reel-lines li { animation: none; }
+}
+
+/* Two columns that hold a worked example each, used on the landing page. */
+.duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 34px; align-items: start; }
+.duo-col { display: grid; gap: 12px; align-content: start; }
+.duo-col .step-p { max-width: 52ch; }
+
+.demo-ask {
+  margin-top: 6px;
+  padding: 18px 20px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-card);
+  background: var(--canvas);
+}
+
+.demo-reel { margin-top: 6px; min-height: 268px; }
+.demo-reel .reel-h { font-size: clamp(23px, 2.6vw, 30px); }
+.demo-reel .reel-lines li { font-size: 14.6px; }
+
+@media (max-width: 880px) { .duo { grid-template-columns: minmax(0, 1fr); gap: 30px; } }

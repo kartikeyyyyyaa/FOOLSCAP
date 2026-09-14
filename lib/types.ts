@@ -102,3 +102,59 @@ export interface GenerateResponse {
   sheet?: RevisionSheet;
   error?: string;
 }
+
+/* ------------------------------------------------------------------ *
+ * Ask: a question about the topic, answered from the student's own
+ * material rather than from the model's general knowledge.
+ * ------------------------------------------------------------------ */
+
+export interface AskAnswer {
+  answer: string;
+  /** False when the material does not cover it and the answer came from elsewhere. */
+  grounded: boolean;
+  /** Section headings the answer draws on. Always real headings from the sheet. */
+  sections: string[];
+  /** Two short questions worth asking next. */
+  followUps: string[];
+}
+
+export interface AskResponse {
+  result?: AskAnswer;
+  error?: string;
+}
+
+/** One turn in the thread. `pending` while the answer is in flight. */
+export interface AskTurn {
+  id: string;
+  question: string;
+  result: AskAnswer | null;
+  error: string | null;
+}
+
+/* ------------------------------------------------------------------ *
+ * Watch: a narrated explainer built from the sheet.
+ * ------------------------------------------------------------------ */
+
+export interface ReelScene {
+  heading: string;
+  /** Two to four short lines shown on screen. Not sentences. */
+  lines: string[];
+  /** What is said over the scene. */
+  narration: string;
+  /** How long the scene runs when narration is muted or unavailable. */
+  seconds: number;
+}
+
+export interface Reel {
+  title: string;
+  /** One line stating what the viewer will be able to do afterwards. */
+  promise: string;
+  scenes: ReelScene[];
+  /** A search query for finding a human-made lecture on the same topic. */
+  search: string;
+}
+
+export interface ExplainResponse {
+  reel?: Reel;
+  error?: string;
+}

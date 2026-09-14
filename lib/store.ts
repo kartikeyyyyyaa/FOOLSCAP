@@ -62,7 +62,7 @@ function fromRow(row: AttemptRow): Attempt {
  * ------------------------------------------------------------------ */
 
 export async function listAttempts(userId: string | null): Promise<Attempt[]> {
-  const supabase = getSupabase();
+  const supabase = await getSupabase();
   if (!supabase || !userId) return loadLocal();
 
   const { data, error } = await supabase
@@ -76,7 +76,7 @@ export async function listAttempts(userId: string | null): Promise<Attempt[]> {
 }
 
 export async function saveAttempt(userId: string | null, attempt: Attempt): Promise<void> {
-  const supabase = getSupabase();
+  const supabase = await getSupabase();
 
   if (!supabase || !userId) {
     saveLocal([attempt, ...loadLocal()]);
@@ -98,7 +98,7 @@ export async function saveAttempt(userId: string | null, attempt: Attempt): Prom
 }
 
 export async function clearAttempts(userId: string | null): Promise<void> {
-  const supabase = getSupabase();
+  const supabase = await getSupabase();
   saveLocal([]);
   if (!supabase || !userId) return;
   await supabase.from("attempts").delete().eq("user_id", userId);
@@ -137,7 +137,7 @@ function saveLocalSheets(sheets: SavedSheet[]): void {
 }
 
 export async function listSheets(userId: string | null): Promise<SavedSheet[]> {
-  const supabase = getSupabase();
+  const supabase = await getSupabase();
   if (!supabase || !userId) return loadLocalSheets();
 
   const { data, error } = await supabase
@@ -172,7 +172,7 @@ export async function saveSheet(
     createdAt: Date.now(),
   };
 
-  const supabase = getSupabase();
+  const supabase = await getSupabase();
   if (!supabase || !userId) {
     saveLocalSheets([entry, ...loadLocalSheets()]);
     return;
@@ -190,7 +190,7 @@ export async function saveSheet(
 }
 
 export async function deleteSheet(userId: string | null, id: string): Promise<void> {
-  const supabase = getSupabase();
+  const supabase = await getSupabase();
   if (!supabase || !userId) {
     saveLocalSheets(loadLocalSheets().filter((s) => s.id !== id));
     return;
@@ -203,7 +203,7 @@ export async function deleteSheet(userId: string | null, id: string): Promise<vo
  * tries the tool and then creates an account does not lose their history.
  */
 export async function mergeLocalInto(userId: string): Promise<void> {
-  const supabase = getSupabase();
+  const supabase = await getSupabase();
   const local = loadLocal();
   if (!supabase || local.length === 0) return;
 

@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import AskPanel from "./AskPanel";
 import AuthBar from "./AuthBar";
 import CompareView from "./CompareView";
+import ExplainerReel from "./ExplainerReel";
 import Heatmap from "./Heatmap";
 import NotesView from "./NotesView";
 import QuizView from "./QuizView";
@@ -16,7 +18,7 @@ import { clearAttempts, listAttempts, mergeLocalInto, saveAttempt, saveLocal, sa
 import { useAuth } from "@/lib/useAuth";
 import type { Attempt, Depth, GenerateResponse, RevisionSheet } from "@/lib/types";
 
-type View = "notes" | "quiz" | "progress";
+type View = "notes" | "quiz" | "ask" | "watch" | "progress";
 
 const STAGES = [
   "Reading the material",
@@ -225,6 +227,8 @@ export default function Workbench() {
           <div className="tabs" role="tablist" aria-label="Output view">
             {tab("notes", "Notes")}
             {tab("quiz", "Quiz", sheet.quiz.length)}
+            {tab("ask", "Ask")}
+            {tab("watch", "Watch")}
             {tab("progress", "Progress", attempts.length)}
           </div>
 
@@ -251,6 +255,10 @@ export default function Workbench() {
           <NotesView sheet={sheet} depth={depth} isSample={isSample} />
         ) : view === "quiz" ? (
           <QuizView sheet={sheet} answers={answers} onAnswer={answer} onReset={() => setAnswers({})} />
+        ) : view === "ask" ? (
+          <AskPanel sheet={sheet} source={source} isSample={isSample} />
+        ) : view === "watch" ? (
+          <ExplainerReel sheet={sheet} isSample={isSample} />
         ) : (
           <div className="progress">
             <AuthBar

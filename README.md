@@ -40,6 +40,10 @@ Foolscap replaces the tick box with a proof ladder. A topic only moves up when y
 
 **A debrief that names the section.** A score out of five is not feedback. Foolscap groups your wrong answers by which part of the source they came from and sends you back to that one section rather than the whole document.
 
+**A question about it, answered from it.** Ask anything about the topic and the answer comes back with the section headings it drew on. When your material does not cover the question, the answer says so in its first sentence and is badged as coming from outside your material, because a student revising needs to know which of those two things just happened.
+
+**An explanation you can listen to.** Gemini writes a short spoken explainer from the same sheet, one idea per scene, and your browser narrates it with captions. There is no video file to fetch and no second API key. There is also a link out to a real YouTube search, built from a query Gemini wrote, for when you want a human lecture instead.
+
 **A ledger that decays.** Answered topics become "due to re-prove" after 48 hours. The dashboard shows your streak, your topics standing, what has slipped, and a GitHub-style activity grid of every day you actually revised.
 
 **Attempt against attempt.** Answer the same topic twice and the two sittings are lined up section by section, each one labelled aced, improved, slipped or stuck, with different advice per verdict. "Stuck" tells you rereading is not working and to write the answer out instead.
@@ -82,6 +86,8 @@ The server also repairs it: if the model returns a `tests` value that does not m
 | **Bonus:** multiple file formats | PDF, DOCX, PPTX, TXT and MD, plus a paste path that always works. |
 | **Bonus:** export in a shareable format | Copy, or download a `.md` with notes, quiz and a separated answer key. |
 | **Bonus:** light personalisation | A subject field steers terminology, and a depth control changes the brief and the token budget. |
+| **Bonus:** ask questions about the material | `app/api/ask` answers from the sheet and names the sections it used, or says the material does not cover it. |
+| **Bonus:** an explanation, not just a page | `app/api/explain` writes a narrated explainer and the browser plays it. |
 
 ---
 
@@ -126,7 +132,9 @@ NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_...
 ```
 
-5. Restart the dev server. `NEXT_PUBLIC_*` values are inlined at build time.
+5. Restart the dev server.
+
+`NEXT_PUBLIC_*` values are inlined into the browser bundle at build time, which fails silently if a variable is added, blanked or mis-scoped after the last build. So `lib/supabase.ts` takes them from the bundle when they are there and otherwise asks `/api/config`, which reads them server-side on every request. Setting them on your host therefore takes effect on the next page load rather than the next deploy, and the endpoint reads only the URL and the publishable key. It never touches the secret key.
 
 The publishable key is meant to be public. Row level security is what protects the rows, which is why step 2 is not optional. The **secret** key (`sb_secret_...`) belongs nowhere in this repo.
 
@@ -140,7 +148,7 @@ Import the repo into Vercel and set `GEMINI_API_KEY` (plus the two Supabase vari
 
 ## How it is built
 
-Next.js 16, React 19, TypeScript, Tailwind v4, `@google/genai`, Supabase. One server route.
+Next.js 16, React 19, TypeScript, Tailwind v4, `@google/genai`, Supabase. Four server routes, no client-side model key.
 
 ```
 app/
@@ -148,7 +156,10 @@ app/
   page.tsx                landing page, server rendered
   dashboard/page.tsx      the signed-in ledger
   globals.css             design tokens and component styles
-  api/generate/route.ts   the only server route
+  api/generate/route.ts   sheet and quiz
+  api/ask/route.ts        questions about the topic
+  api/explain/route.ts    the explainer script
+  api/config/route.ts     public Supabase config, read at runtime
 components/
   Workbench.tsx           client state, orchestration
   SourcePanel.tsx         upload, extraction, settings
@@ -160,6 +171,8 @@ components/
   TopicTracker.tsx        per-topic accuracy, trend, weakest section
   CompareView.tsx         attempt against attempt
   Dashboard.tsx           stat tiles, saved sheets, the lot
+  AskPanel.tsx            questions about the topic, with sources
+  ExplainerReel.tsx       the narrated explainer and its player
   NavAuth.tsx             sign in and sign up, in the header
   ThemeToggle.tsx         light and dark
 lib/
@@ -168,6 +181,7 @@ lib/
   ledger.ts               proof ladder, decay, debrief maths
   stats.ts                attempts, topic stats, comparison, heatmap
   store.ts                Supabase or localStorage, with fallback
+  gemini.ts               shared model call, fallback and error mapping
   supabase.ts             browser client, null when unconfigured
   useAuth.ts              session state
   demo.ts                 illustrative history
@@ -184,6 +198,10 @@ supabase/
 **Structured output is enforced, not parsed.** The route passes `responseSchema` and `responseMimeType: "application/json"` to Gemini, so the model emits typed JSON directly. There is no fence-stripping or regex recovery in the happy path, and malformed questions are dropped before render rather than becoming unanswerable cards.
 
 **One attempt row is the source of truth.** The ledger, the heatmap, the tracker and the comparison are all derived from the same list of attempts. There is no second state to keep in sync.
+
+**The explainer is composed, not rendered.** Gemini returns a script (scenes, on-screen lines, narration, timing) and the browser plays it with its own speech synthesis. Rendering video server-side would mean an encoder, storage and a wait, for something the browser can compose instantly and keep in the theme. A browser with no voice installed falls back to the scene's own timing and the captions carry every word.
+
+**No invented video ids.** A model asked for YouTube ids produces ones that 404. The route returns a search query instead, so the link always lands somewhere real.
 
 **Everything degrades.** No Supabase means localStorage. A retired model id means a fallback. A scanned PDF means a message pointing at the paste path. Blocked storage means the feature quietly turns off rather than throwing.
 
@@ -208,6 +226,8 @@ The activity grid is drawn on canvas rather than as 180 DOM nodes, and reads its
 - Source text is capped at 60,000 characters. Longer documents are trimmed from the end.
 - PPTX extraction reads slide body text, not speaker notes or text baked into images.
 - Without Supabase the ledger is per browser and does not sync.
+- The explainer plays in the browser. There is no downloadable video file, and the voice is whichever one the operating system provides.
+- The YouTube link opens a search, not a specific video. Nothing on the page claims to have watched it.
 
 ## Roadmap
 

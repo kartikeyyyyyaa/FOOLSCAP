@@ -231,6 +231,72 @@ export default function Page() {
         </div>
       </section>
 
+
+      {/* ---------------- ask and watch ---------------- */}
+      <section className="band band-soft" id="ask">
+        <div className="wrap">
+          <div className="band-head">
+            <h2 className="d2">When the sheet is not enough.</h2>
+            <p className="lead">
+              Two ways back into the same material, both built from your own file rather than from
+              somewhere else on the internet.
+            </p>
+          </div>
+
+          <div className="duo">
+            <div className="duo-col">
+              <h3 className="step-h">Ask it a question</h3>
+              <p className="step-p">
+                Answers come from your sheet, and every answer names the sections it drew on. When
+                your material does not cover the question, it says so before it answers rather than
+                letting you revise from something your lecturer never said.
+              </p>
+
+              <div className="ask-a demo-ask">
+                <p className="ask-q">Why is a cycle not always a deadlock?</p>
+                <div className="ask-src">
+                  <span className="badge">From your material</span>
+                  <span className="ask-sec">Detection, and why it differs</span>
+                </div>
+                <p className="ask-body">
+                  With one instance of each resource type a cycle is proof. With several instances it
+                  only means deadlock is possible, so the detection algorithm has to be run.
+                </p>
+              </div>
+            </div>
+
+            <div className="duo-col">
+              <h3 className="step-h">Or have it explained</h3>
+              <p className="step-p">
+                Gemini writes a short spoken explainer from the same sheet, one idea per scene, and
+                your browser narrates it. Nothing is pulled from a video site, so there is no
+                wrong-topic lecture and no dead embed.
+              </p>
+
+              <div className="reel-stage demo-reel" aria-hidden="true">
+                <div className="reel-meta">
+                  <span className="reel-count">02 / 06</span>
+                  <span className="reel-title">Deadlock</span>
+                </div>
+                <div className="reel-slide">
+                  <h3 className="reel-h">Four conditions</h3>
+                  <ul className="reel-lines">
+                    <li>Mutual exclusion</li>
+                    <li>Hold and wait</li>
+                    <li>No preemption</li>
+                    <li>Circular wait</li>
+                  </ul>
+                </div>
+                <p className="reel-caption">
+                  Deadlock needs all four at once. That is the useful part: break any single one and
+                  it cannot form.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ---------------- the tool ---------------- */}
       <section className="band band-warm" id="tool">
         <div className="wrap">
