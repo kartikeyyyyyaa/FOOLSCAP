@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import CompareView from "./CompareView";
 import Heatmap from "./Heatmap";
+import RevisionPlan from "./RevisionPlan";
 import TopicTracker from "./TopicTracker";
 import { HOLD_MS, PASS, since, standingCount } from "@/lib/ledger";
 import { filenameFor, sheetToMarkdown } from "@/lib/markdown";
@@ -128,6 +129,14 @@ export default function Dashboard() {
         </div>
       ) : (
         <>
+          <section className="panel-lite">
+            <div className="panel-lite-head">
+              <span className="panel-lite-t">What to revise next</span>
+              <span className="mono-s">From the 48 hour rule</span>
+            </div>
+            <RevisionPlan ledger={ledger} sheets={sheets} onOpen={open} />
+          </section>
+
           <section className="panel-lite">
             <div className="panel-lite-head">
               <span className="panel-lite-t">Revision activity</span>

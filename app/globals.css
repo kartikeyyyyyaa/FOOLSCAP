@@ -1650,3 +1650,270 @@ input.text {
 .demo-reel .reel-lines li { font-size: 14.6px; }
 
 @media (max-width: 880px) { .duo { grid-template-columns: minmax(0, 1fr); gap: 30px; } }
+
+/* ==========================================================================
+   PRACTICE
+   Flashcards and fill-in-the-blanks. Both are built from the sheet, so the
+   styling deliberately echoes the notes rather than introducing a new world.
+   ========================================================================== */
+
+.notice[data-tone="ok"] { border-color: rgba(15, 122, 87, .3); background: var(--proved-wash); }
+.notice[data-tone="ok"] b { color: var(--proved); }
+
+.practice { display: grid; gap: 18px; padding: 22px var(--gutter) 26px; }
+
+.practice-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: start;
+}
+
+.practice-seg { min-width: 260px; }
+
+@media (max-width: 720px) {
+  .practice-head { grid-template-columns: minmax(0, 1fr); }
+  .practice-seg { min-width: 0; }
+}
+
+.cards, .cloze { display: grid; gap: 14px; }
+
+.cards-meta {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint);
+}
+
+.cards-mastered { color: var(--ink-mute); }
+.cards-box { display: inline-flex; gap: 4px; margin-left: auto; }
+
+.pip {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--canvas-sink);
+  border: 1px solid var(--hairline-2);
+}
+
+.pip[data-on="true"] { background: var(--indigo); border-color: var(--indigo); }
+
+/* The card is a button so reveal works on keyboard and touch alike. */
+.card-face {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+  text-align: left;
+  width: 100%;
+  min-height: 210px;
+  align-content: center;
+  padding: 30px 28px;
+  cursor: pointer;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-card);
+  background:
+    radial-gradient(120% 90% at 90% 0%, var(--indigo-wash) 0%, transparent 60%),
+    var(--canvas);
+  box-shadow: var(--shadow-card);
+  transition: border-color .15s ease, transform .15s ease;
+}
+
+.card-face:hover { border-color: var(--hairline-2); }
+.card-face:active { transform: translateY(1px); }
+
+.card-kind {
+  font-family: var(--mono);
+  font-size: 10.8px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--indigo);
+}
+
+.card-front {
+  font-family: var(--display);
+  font-weight: 300;
+  letter-spacing: -.025em;
+  font-size: clamp(24px, 3.4vw, 34px);
+  line-height: 1.14;
+  color: var(--ink);
+}
+
+.card-back {
+  font-size: 15.2px;
+  line-height: 1.66;
+  color: var(--ink-2);
+  max-width: 62ch;
+  border-top: 1px solid var(--hairline);
+  padding-top: 13px;
+}
+
+.card-hint { font-size: 12.6px; color: var(--ink-faint); }
+
+.cards-controls { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+
+.cloze-line {
+  font-size: 17px;
+  line-height: 1.85;
+  color: var(--ink);
+  padding: 26px 24px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-card);
+  background: var(--canvas-soft);
+  max-width: 72ch;
+}
+
+.cloze-slot {
+  font-family: var(--mono);
+  font-size: .92em;
+  padding: 2px 8px;
+  border-radius: var(--r-field);
+  background: var(--indigo-wash);
+  color: var(--indigo-deep);
+  border-bottom: 2px solid var(--indigo);
+}
+
+.cloze-slot[data-state="right"] {
+  background: var(--proved-wash); color: var(--proved); border-color: var(--proved);
+}
+
+.cloze-slot[data-state="wrong"] {
+  background: var(--missed-wash); color: var(--missed); border-color: var(--missed);
+}
+
+.cloze-done {
+  display: grid; gap: 10px; justify-items: start;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-card);
+  padding: 26px 24px;
+  background: var(--canvas-soft);
+}
+
+.cloze-done b { font-size: 19px; color: var(--ink); font-weight: 600; }
+.cloze-done span { font-size: 14px; color: var(--ink-mute); max-width: 60ch; line-height: 1.6; }
+
+/* Explanation level. Chips rather than a segmented control, because five
+   options in a segmented row collapse to unreadable on a phone. */
+.levels { display: flex; flex-wrap: wrap; gap: 6px; }
+.levels .chip[aria-pressed="true"] {
+  background: var(--indigo); border-color: var(--indigo); color: var(--on-indigo); font-weight: 600;
+}
+.levels .chip[aria-pressed="true"]:hover { color: var(--on-indigo); }
+.levels .chip[disabled] { opacity: .5; cursor: not-allowed; }
+.ask-intro { gap: 10px; }
+
+/* Reading time and the high-yield filter, on the notes header. */
+.notes-bar {
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  padding-top: 4px;
+}
+
+.notes-time { font-family: var(--mono); font-size: 11.8px; color: var(--ink-faint); }
+
+.notes-bar .chip[aria-pressed="true"] {
+  background: var(--indigo); border-color: var(--indigo); color: var(--on-indigo); font-weight: 600;
+}
+.notes-bar .chip[aria-pressed="true"]:hover { color: var(--on-indigo); }
+
+/* Photographs waiting to be read. Thumbnails, not a gallery: they exist to
+   confirm the right page is in, then get out of the way. */
+.shots { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 9px; }
+
+.shot {
+  margin: 0;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-field);
+  overflow: hidden;
+  background: var(--canvas-sink);
+}
+
+.shot img { display: block; width: 100%; height: 88px; object-fit: cover; }
+
+.shot figcaption {
+  display: grid; gap: 2px;
+  padding: 7px 9px 8px;
+  font-size: 11.4px;
+  color: var(--ink-mute);
+  background: var(--canvas);
+}
+
+.shot figcaption span {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.shot figcaption button {
+  justify-self: start;
+  border: 0; background: none; padding: 0; cursor: pointer;
+  font-size: 11.4px; color: var(--indigo); font-weight: 600;
+}
+
+.shot figcaption button:hover { color: var(--indigo-deep); text-decoration: underline; }
+
+/* ==========================================================================
+   REVISION PLAN
+   The decay rule, written out as days.
+   ========================================================================== */
+
+.plan { display: grid; gap: 16px; }
+
+.plan-sum { font-size: 14.4px; color: var(--ink-2); line-height: 1.6; max-width: 66ch; }
+
+.plan-group { display: grid; gap: 8px; }
+
+.plan-label {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  font-family: var(--mono); font-size: 11.2px; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--ink-faint);
+  padding-bottom: 6px; border-bottom: 1px solid var(--hairline);
+}
+
+.plan-label[data-slot="now"] { color: var(--missed); border-bottom-color: rgba(179, 50, 47, .3); }
+.plan-label[data-slot="today"] { color: var(--shaky); }
+.plan-label[data-slot="clear"] { color: var(--proved); }
+
+.plan-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+
+.plan-row {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center;
+  padding: 11px 13px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-field);
+  background: var(--canvas);
+}
+
+.plan-main { display: grid; gap: 3px; min-width: 0; }
+.plan-t { font-size: 14.2px; font-weight: 600; color: var(--ink); line-height: 1.35; }
+.plan-r { font-size: 12.4px; color: var(--ink-mute); line-height: 1.45; }
+
+/* ==========================================================================
+   MIND MAP
+   One SVG, drawn from the sections. It scrolls sideways on a phone rather
+   than shrinking the labels past readable.
+   ========================================================================== */
+
+.map { display: grid; gap: 12px; padding: 4px 0 2px; }
+.map-scroll { overflow-x: auto; padding-bottom: 6px; }
+.map-svg { display: block; max-width: 100%; height: auto; min-width: 680px; }
+
+.map-link { fill: none; stroke: var(--hairline-2); stroke-width: 1.5; }
+
+.map-centre { fill: var(--indigo); }
+
+.map-title {
+  fill: var(--on-indigo);
+  font-family: var(--display);
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -.01em;
+}
+
+.map-card { fill: var(--canvas); stroke: var(--hairline); stroke-width: 1; }
+
+.map-head {
+  fill: var(--ink);
+  font-family: var(--display);
+  font-size: 13.4px;
+  font-weight: 600;
+}
+
+.map-point { fill: var(--ink-mute); font-size: 11.6px; }
+.map-dot { fill: var(--indigo); }
+
+.notes-seg { max-width: 190px; margin-left: auto; }
+
+@media (max-width: 560px) { .notes-seg { margin-left: 0; } }

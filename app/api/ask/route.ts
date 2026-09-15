@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { GeminiError, NO_KEY, apiKey, callJson } from "@/lib/gemini";
-import { ASK_SCHEMA, MAX_ASK_SOURCE_CHARS, buildAskPrompt, sheetDigest } from "@/lib/prompt";
+import { ASK_SCHEMA, MAX_ASK_SOURCE_CHARS, asLevel, buildAskPrompt, sheetDigest } from "@/lib/prompt";
 import type { AskAnswer, AskResponse, RevisionSheet } from "@/lib/types";
 
 /**
@@ -30,6 +30,7 @@ export async function POST(request: Request) {
     question?: string;
     sheet?: RevisionSheet;
     source?: string;
+    level?: string;
     history?: { question?: string; answer?: string }[];
   };
   try {
@@ -57,7 +58,7 @@ export async function POST(request: Request) {
   try {
     const parsed = await callJson<AskAnswer>({
       apiKey: key,
-      prompt: buildAskPrompt(question, digest, source, history),
+      prompt: buildAskPrompt(question, digest, source, history, asLevel(body.level)),
       schema: ASK_SCHEMA,
       temperature: 0.3,
       maxOutputTokens: 8192,

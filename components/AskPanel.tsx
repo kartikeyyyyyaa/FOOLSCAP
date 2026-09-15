@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import LevelPicker from "./LevelPicker";
+import type { Level } from "@/lib/prompt";
 import type { AskResponse, AskTurn, RevisionSheet } from "@/lib/types";
 
 interface Props {
@@ -27,6 +29,7 @@ export default function AskPanel({ sheet, source, isSample }: Props) {
   const [turns, setTurns] = useState<AskTurn[]>([]);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
+  const [level, setLevel] = useState<Level>("plain");
   const endRef = useRef<HTMLDivElement | null>(null);
 
   // A new sheet is a new conversation. Carrying questions about deadlock into
@@ -61,7 +64,7 @@ export default function AskPanel({ sheet, source, isSample }: Props) {
         const res = await fetch("/api/ask", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ question: trimmed, sheet, source, history }),
+          body: JSON.stringify({ question: trimmed, sheet, source, history, level }),
         });
         const payload: AskResponse = await res.json();
 
@@ -84,7 +87,7 @@ export default function AskPanel({ sheet, source, isSample }: Props) {
         setBusy(false);
       }
     },
-    [busy, sheet, source, turns],
+    [busy, sheet, source, turns, level],
   );
 
   return (
@@ -96,6 +99,7 @@ export default function AskPanel({ sheet, source, isSample }: Props) {
           plainly when the answer is not in there.
           {isSample && " This is the sample sheet, so questions are answered against the sample."}
         </p>
+        <LevelPicker value={level} onChange={setLevel} disabled={busy} />
       </div>
 
       {turns.length === 0 && (

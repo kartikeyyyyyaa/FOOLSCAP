@@ -40,9 +40,19 @@ Foolscap replaces the tick box with a proof ladder. A topic only moves up when y
 
 **A debrief that names the section.** A score out of five is not feedback. Foolscap groups your wrong answers by which part of the source they came from and sends you back to that one section rather than the whole document.
 
+**Flashcards and fill-in-the-blanks, for free.** The key terms become a deck with Leitner mastery, and the lines that have to be known verbatim become cloze drills with the key term blanked out. Both are derived from the sheet on the client, so they cost no second model call and cannot ask you something your own material does not answer.
+
+**A map, not just a list.** The same sheet drawn as a mind map, each branch a section heading with its most examinable points under it.
+
 **A question about it, answered from it.** Ask anything about the topic and the answer comes back with the section headings it drew on. When your material does not cover the question, the answer says so in its first sentence and is badged as coming from outside your material, because a student revising needs to know which of those two things just happened.
 
+**One switch for how it is explained.** Simple, exam answer, cram or one line, applied to both the answers and the explainer. It changes the delivery, never the facts.
+
 **An explanation you can listen to.** Gemini writes a short spoken explainer from the same sheet, one idea per scene, and your browser narrates it with captions. There is no video file to fetch and no second API key. There is also a link out to a real YouTube search, built from a query Gemini wrote, for when you want a human lecture instead.
+
+**A photograph works too.** Snap the board or a page of your own handwriting. The image is sized down in the browser, which also strips its EXIF, and Gemini reads it directly. Nothing is guessed: a word that cannot be read is left out rather than invented.
+
+**A plan, not just a rule.** The 48 hour decay is written out as a schedule of what to answer now, later today, tomorrow and this week. Nothing on it was scheduled by hand.
 
 **A ledger that decays.** Answered topics become "due to re-prove" after 48 hours. The dashboard shows your streak, your topics standing, what has slipped, and a GitHub-style activity grid of every day you actually revised.
 
@@ -88,6 +98,8 @@ The server also repairs it: if the model returns a `tests` value that does not m
 | **Bonus:** light personalisation | A subject field steers terminology, and a depth control changes the brief and the token budget. |
 | **Bonus:** ask questions about the material | `app/api/ask` answers from the sheet and names the sections it used, or says the material does not cover it. |
 | **Bonus:** an explanation, not just a page | `app/api/explain` writes a narrated explainer and the browser plays it. |
+| **Bonus:** more than one way to be tested | Flashcards with mastery and cloze drills, both derived client side from the same sheet. |
+| **Bonus:** multimodal input | A photo of a board or of handwriting is read by Gemini directly, with no OCR step. |
 
 ---
 
@@ -172,6 +184,10 @@ components/
   CompareView.tsx         attempt against attempt
   Dashboard.tsx           stat tiles, saved sheets, the lot
   AskPanel.tsx            questions about the topic, with sources
+  PracticePanel.tsx       flashcards and cloze drills
+  MindMap.tsx             the sheet drawn as a map
+  RevisionPlan.tsx        the decay rule as a schedule
+  LevelPicker.tsx         how it should be explained
   ExplainerReel.tsx       the narrated explainer and its player
   NavAuth.tsx             sign in and sign up, in the header
   ThemeToggle.tsx         light and dark
@@ -181,6 +197,10 @@ lib/
   ledger.ts               proof ladder, decay, debrief maths
   stats.ts                attempts, topic stats, comparison, heatmap
   store.ts                Supabase or localStorage, with fallback
+  drill.ts                cards, mastery, cloze generation
+  image.ts                photo downscale and encode
+  plan.ts                 what to revise next, from the ledger
+  reading.ts              study time and what counts as high yield
   gemini.ts               shared model call, fallback and error mapping
   supabase.ts             browser client, null when unconfigured
   useAuth.ts              session state
@@ -203,6 +223,8 @@ supabase/
 
 **No invented video ids.** A model asked for YouTube ids produces ones that 404. The route returns a search query instead, so the link always lands somewhere real.
 
+**The extra study formats are derived, not generated.** Cards, cloze blanks, the map, the reading time and the high-yield filter are all computed from the sheet on the client. That is not a shortcut: a blank the model chose could hide a word the sheet never taught, and a difficulty label it assigned could not be checked by looking. Deriving them means every one of them is falsifiable against the sheet in front of you.
+
 **Everything degrades.** No Supabase means localStorage. A retired model id means a fallback. A scanned PDF means a message pointing at the paste path. Blocked storage means the feature quietly turns off rather than throwing.
 
 **The app opens in a working state.** `lib/sample.ts` carries a real Operating Systems revision sheet on deadlock, badged as a sample, so the first paint shows what the product does. The landing page renders its previews from that same data through the same components, so nothing on the page is a mockup.
@@ -222,7 +244,9 @@ The activity grid is drawn on canvas rather than as 180 DOM nodes, and reads its
 
 ## Known limits
 
-- Scanned PDFs with no text layer are rejected with a message pointing at the paste path. There is no OCR.
+- Scanned PDFs with no text layer are rejected with a message pointing at the paste path. There is no OCR, but a photograph of the same page works, because Gemini reads images directly.
+- Photographs are capped at three per sheet and sized to 1600px on the long edge before upload.
+- Flashcard mastery is kept in `localStorage`, so it does not follow you between devices the way attempts do.
 - Source text is capped at 60,000 characters. Longer documents are trimmed from the end.
 - PPTX extraction reads slide body text, not speaker notes or text baked into images.
 - Without Supabase the ledger is per browser and does not sync.

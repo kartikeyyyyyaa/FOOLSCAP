@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
-import { MAX_SOURCE_CHARS, SHEET_SCHEMA, buildPrompt } from "@/lib/prompt";
+import { MAX_SOURCE_CHARS, SHEET_SCHEMA, buildImagePrompt, buildPrompt } from "@/lib/prompt";
 import type { Depth, GenerateResponse, RevisionSheet } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -13,6 +13,14 @@ export const maxDuration = 60;
  * down with it.
  */
 const DEFAULT_MODEL = "gemini-3.6-flash";
+
+const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"];
+
+/** Base64 characters, not bytes. Roughly six megabytes of actual image. */
+const MAX_IMAGE_CHARS = 8_000_000;
+
+/** A whiteboard is one or two photographs. More than three is a different problem. */
+const MAX_IMAGES = 3;
 
 function fail(error: string, status: number) {
   return NextResponse.json<GenerateResponse>({ error }, { status });
@@ -68,7 +76,13 @@ export async function POST(request: Request) {
     );
   }
 
-  let body: { source?: string; subject?: string; depth?: Depth; count?: number };
+  let body: {
+    source?: string;
+    subject?: string;
+    depth?: Depth;
+    count?: number;
+    images?: { mimeType?: string; data?: string }[];
+  };
   try {
     body = await request.json();
   } catch {
@@ -80,17 +94,46 @@ export async function POST(request: Request) {
   const depth: Depth = body.depth === "thorough" ? "thorough" : "quick";
   const count = body.count === 10 ? 10 : 5;
 
-  if ((source.match(/\S+/g) ?? []).length < 40) {
+  // Photographs of a board or of handwriting go straight to the model, because
+  // there is no text to extract in the browser first. Capped in number and in
+  // size: three phone photos is a whiteboard, thirty is an upload problem.
+  const images = (body.images ?? [])
+    .slice(0, MAX_IMAGES)
+    .filter((i) => i?.data && ALLOWED_IMAGE_TYPES.includes(i.mimeType ?? ""))
+    .map((i) => ({ mimeType: i.mimeType as string, data: i.data as string }));
+
+  const oversize = images.reduce((n, i) => n + i.data.length, 0) > MAX_IMAGE_CHARS;
+  if (oversize) {
+    return fail("Those photographs are too large. Take them again at a lower resolution.", 413);
+  }
+
+  if (images.length === 0 && (source.match(/\S+/g) ?? []).length < 40) {
     return fail("There is not enough text to revise from. Send at least a few paragraphs.", 400);
   }
 
   const ai = new GoogleGenAI({ apiKey });
-  const prompt = buildPrompt(source, subject, depth, count);
+
+  const prompt = images.length
+    ? buildImagePrompt(subject, depth, count)
+    : buildPrompt(source, subject, depth, count);
+
+  // Text-only stays a plain string so the existing path is untouched.
+  const contents = images.length
+    ? [
+        {
+          role: "user",
+          parts: [
+            ...images.map((i) => ({ inlineData: { mimeType: i.mimeType, data: i.data } })),
+            { text: prompt },
+          ],
+        },
+      ]
+    : prompt;
 
   const call = (model: string) =>
     ai.models.generateContent({
       model,
-      contents: prompt,
+      contents,
       config: {
         responseMimeType: "application/json",
         responseSchema: SHEET_SCHEMA,

@@ -19,7 +19,7 @@ const mono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "Foolscap",
   description:
-    "Lecture material in. Revision notes and a practice quiz out. Built for Prompt Wars.",
+    "Lecture material in. Revision notes and a practice quiz out, plus a ledger of what you have actually proved.",
 };
 
 export const viewport: Viewport = {

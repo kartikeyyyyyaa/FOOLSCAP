@@ -7,10 +7,12 @@ import CompareView from "./CompareView";
 import ExplainerReel from "./ExplainerReel";
 import Heatmap from "./Heatmap";
 import NotesView from "./NotesView";
+import PracticePanel from "./PracticePanel";
 import QuizView from "./QuizView";
 import SourcePanel from "./SourcePanel";
 import TopicTracker from "./TopicTracker";
 import { demoAttempts } from "@/lib/demo";
+import type { LoadedImage } from "@/lib/image";
 import { filenameFor, sheetToMarkdown } from "@/lib/markdown";
 import { SAMPLE_SHEET } from "@/lib/sample";
 import { dayStreak, toAttempt } from "@/lib/stats";
@@ -18,7 +20,7 @@ import { clearAttempts, listAttempts, mergeLocalInto, saveAttempt, saveLocal, sa
 import { useAuth } from "@/lib/useAuth";
 import type { Attempt, Depth, GenerateResponse, RevisionSheet } from "@/lib/types";
 
-type View = "notes" | "quiz" | "ask" | "watch" | "progress";
+type View = "notes" | "quiz" | "practice" | "ask" | "watch" | "progress";
 
 const STAGES = [
   "Reading the material",
@@ -30,6 +32,7 @@ export default function Workbench() {
   const auth = useAuth();
 
   const [source, setSource] = useState("");
+  const [images, setImages] = useState<LoadedImage[]>([]);
   const [subject, setSubject] = useState("");
   const [depth, setDepth] = useState<Depth>("quick");
   const [count, setCount] = useState(5);
@@ -95,9 +98,9 @@ export default function Workbench() {
   const generate = useCallback(async () => {
     if (busy) return;
 
-    if ((source.match(/\S+/g) ?? []).length < 40) {
+    if (images.length === 0 && (source.match(/\S+/g) ?? []).length < 40) {
       setError(
-        "There is not enough text to revise from yet. Add a lecture file, or paste at least a few paragraphs.",
+        "There is not enough to revise from yet. Add a lecture file, a photo of the board, or paste at least a few paragraphs.",
       );
       setView("notes");
       return;
@@ -116,7 +119,13 @@ export default function Workbench() {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ source, subject, depth, count }),
+        body: JSON.stringify({
+          source,
+          subject,
+          depth,
+          count,
+          images: images.map((i) => ({ mimeType: i.mimeType, data: i.data })),
+        }),
       });
       const payload: GenerateResponse = await res.json();
 
@@ -135,7 +144,7 @@ export default function Workbench() {
       window.clearInterval(ticker);
       setBusy(false);
     }
-  }, [busy, source, subject, depth, count, auth.userId]);
+  }, [busy, source, images, subject, depth, count, auth.userId]);
 
   // Reopening a saved sheet from the dashboard hands it over through
   // sessionStorage rather than refetching or regenerating it.
@@ -211,7 +220,9 @@ export default function Workbench() {
         depth={depth}
         count={count}
         busy={busy}
+        images={images}
         onSource={setSource}
+        onImages={setImages}
         onSubject={setSubject}
         onDepth={setDepth}
         onCount={setCount}
@@ -227,6 +238,7 @@ export default function Workbench() {
           <div className="tabs" role="tablist" aria-label="Output view">
             {tab("notes", "Notes")}
             {tab("quiz", "Quiz", sheet.quiz.length)}
+            {tab("practice", "Practice")}
             {tab("ask", "Ask")}
             {tab("watch", "Watch")}
             {tab("progress", "Progress", attempts.length)}
@@ -255,6 +267,8 @@ export default function Workbench() {
           <NotesView sheet={sheet} depth={depth} isSample={isSample} />
         ) : view === "quiz" ? (
           <QuizView sheet={sheet} answers={answers} onAnswer={answer} onReset={() => setAnswers({})} />
+        ) : view === "practice" ? (
+          <PracticePanel sheet={sheet} />
         ) : view === "ask" ? (
           <AskPanel sheet={sheet} source={source} isSample={isSample} />
         ) : view === "watch" ? (

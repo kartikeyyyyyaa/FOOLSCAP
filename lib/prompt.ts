@@ -125,6 +125,74 @@ export function buildPrompt(
   return `${rules}\n\nSOURCE MATERIAL:\n\n${source}`;
 }
 
+
+
+/**
+ * The same brief, for material that arrives as photographs rather than text:
+ * a blackboard, a page of handwriting, a textbook spread. The rules about not
+ * inventing anything matter more here, because a model that cannot read a word
+ * will happily guess at it.
+ */
+export function buildImagePrompt(subject: string, depth: Depth, count: number): string {
+  const thorough = depth === "thorough";
+
+  return [
+    "The material is in the attached images: a photograph of a board, a page of handwritten notes, or a scan.",
+    "Read everything legible in them, including text written in the margins and anything drawn as a diagram.",
+    "Where a word or symbol is genuinely illegible, leave it out. Never guess at a figure, a formula or a name you cannot read.",
+    "If the images contain almost no readable study material, still return the structure, with an overview saying the photograph was not readable enough.",
+    "You are preparing revision notes for a university student who will be examined on this material.",
+    subject
+      ? `The subject is ${subject}. Use that field's standard terminology and notation.`
+      : "Infer the subject from the material itself.",
+    thorough
+      ? "Depth: thorough. Give 8 to 12 key terms, 4 to 6 sections of 4 to 6 points each."
+      : "Depth: quick pass. Give 5 to 7 key terms, 3 to 4 sections of 3 to 4 points each.",
+    "sections carry the explanation, broken into short self-contained points a student can revise from.",
+    "memorize holds the formulas, rules, values or lists that have to be known verbatim.",
+    "traps holds the specific mistakes students make on this topic, stated as the mistake and the correction.",
+    `Write exactly ${count} multiple-choice questions, each with exactly 4 options and one correct answer.`,
+    "answerIndex is the zero-based index of the correct option. Vary which position is correct across the quiz.",
+    "tests must be the exact heading string of the section that question examines, copied character for character.",
+    "Wrong options must be plausible and drawn from real confusions in this topic, never filler.",
+    "Use plain punctuation. Do not use em dashes.",
+    "Every field must be present. Never return an empty array.",
+  ].join("\n");
+}
+
+/* ------------------------------------------------------------------ *
+ * Explain level. One switch, applied to both Ask and Watch.
+ * ------------------------------------------------------------------ */
+
+export const LEVELS = ["plain", "eli5", "exam", "cram", "tldr"] as const;
+export type Level = (typeof LEVELS)[number];
+
+export function asLevel(input: unknown): Level {
+  return LEVELS.includes(input as Level) ? (input as Level) : "plain";
+}
+
+/**
+ * These change how the same material is delivered, never what it says. Each
+ * line is written to constrain length and framing, because "explain simply"
+ * on its own just produces the same answer with shorter words.
+ */
+const LEVEL_RULES: Record<Level, string> = {
+  plain:
+    "Pitch this at a university student revising the topic. Lead with the answer, then the reason.",
+  eli5:
+    "Explain it to someone who has never met this subject. Everyday words, one concrete analogy, and no jargon unless you define it in the same sentence. Do not be childish about it: simple, not babyish.",
+  exam:
+    "Answer it the way it would be written in an exam for full marks. Say what the marker is looking for, in the order they expect it, and name the term that has to appear for the mark to be given.",
+  cram:
+    "The exam is tomorrow. Give only what is most likely to be examined and most likely to be forgotten. No background, no history, no caveats. Short sentences.",
+  tldr:
+    "One sentence. Thirty words at most. The single thing that, if they remember nothing else, is worth remembering.",
+};
+
+export function levelRule(level: Level): string {
+  return LEVEL_RULES[level];
+}
+
 /* ------------------------------------------------------------------ *
  * Ask
  * ------------------------------------------------------------------ */
@@ -199,14 +267,15 @@ export function buildAskPrompt(
   digest: string,
   source: string,
   history: { question: string; answer: string }[],
+  level: Level = "plain",
 ): string {
   const rules = [
     "You are answering a university student's question about material they are revising.",
+    levelRule(level),
     "Answer from the REVISION MATERIAL below first, and from the SOURCE EXTRACT where one is given.",
     "If the material supports the answer, set grounded to true and list the exact section headings you used.",
     "If the material does not cover it, set grounded to false, say so in the first sentence, then answer briefly from general knowledge of the subject. Never pretend the material said something it did not.",
     "Do not invent formulas, figures, dates or citations that are not in the material.",
-    "Write for someone revising, not for a textbook. Lead with the answer, then the reason.",
     "If the question is about how to answer an exam question, say what the marker is looking for.",
     "sections must copy headings character for character from the SECTIONS list. If you used none, return an empty array.",
     "Use plain punctuation. Do not use em dashes.",
@@ -271,11 +340,12 @@ export const REEL_SCHEMA = {
   propertyOrdering: ["title", "promise", "scenes", "search"],
 };
 
-export function buildReelPrompt(digest: string, minutes: number): string {
+export function buildReelPrompt(digest: string, minutes: number, level: Level = "plain"): string {
   const scenes = minutes <= 2 ? "5 or 6" : "8 to 10";
 
   const rules = [
     "You are writing a short spoken explainer that a student will watch instead of rereading their notes.",
+    levelRule(level),
     `Write ${scenes} scenes, in the order the idea has to be built up.`,
     "Open by naming the problem the topic solves, not by announcing what the video will cover.",
     "Each scene carries exactly one idea. If a scene needs the word 'and' twice, split it.",

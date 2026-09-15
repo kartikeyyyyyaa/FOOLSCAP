@@ -64,8 +64,6 @@ const STEPS = [
   },
 ];
 
-const CREDITS = ["Prompt Wars 2026", "Google for Developers", "Hack2Skill", "Android Club, VIT Bhopal"];
-
 export default function Page() {
   return (
     <>
@@ -382,14 +380,6 @@ export default function Page() {
               without four options, a marked answer and a reason. Malformed items are dropped before
               render.
             </p>
-
-            <div className="credits">
-              {CREDITS.map((c) => (
-                <span className="credit" key={c}>
-                  {c}
-                </span>
-              ))}
-            </div>
           </div>
         </div>
       </section>
@@ -397,8 +387,7 @@ export default function Page() {
       <footer className="wrap">
         <div className="foot">
           <p className="foot-note">
-            Foolscap. Problem statement 01, AI-Powered Student Workspace. One flow, finished end to
-            end.
+            Foolscap. One flow, finished end to end.
           </p>
           <a className="btn btn-fill" href="#tool">
             Try it on your notes

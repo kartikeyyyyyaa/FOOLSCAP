@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { ExtractError, countWords, extractText } from "@/lib/extract";
+import { MAX_IMAGES, isImage, readImage, type LoadedImage } from "@/lib/image";
 import type { Depth } from "@/lib/types";
 
 const SUBJECT_CHIPS = [
@@ -11,14 +12,16 @@ const SUBJECT_CHIPS = [
   "Data Structures",
 ];
 
-const FORMATS = ["PDF", "DOCX", "PPTX", "TXT", "MD"];
+const FORMATS = ["PDF", "DOCX", "PPTX", "TXT", "MD", "PHOTO"];
 
 interface Props {
   subject: string;
   depth: Depth;
   count: number;
   busy: boolean;
+  images: LoadedImage[];
   onSource: (text: string) => void;
+  onImages: (images: LoadedImage[]) => void;
   onSubject: (value: string) => void;
   onDepth: (value: Depth) => void;
   onCount: (value: number) => void;
@@ -30,7 +33,9 @@ export default function SourcePanel({
   depth,
   count,
   busy,
+  images,
   onSource,
+  onImages,
   onSubject,
   onDepth,
   onCount,
@@ -49,6 +54,21 @@ export default function SourcePanel({
       setFileError(null);
       setReading(true);
       try {
+        // A photograph has no text to pull out in the browser, so it is sized
+        // down here and read by Gemini itself.
+        if (isImage(file)) {
+          if (images.length >= MAX_IMAGES) {
+            throw new ExtractError(
+              `That is already ${MAX_IMAGES} photographs. Remove one before adding another.`,
+            );
+          }
+          const picture = await readImage(file);
+          onImages([...images, picture]);
+          setLoaded(null);
+          onSource("");
+          return;
+        }
+
         const text = await extractText(file);
         if (countWords(text) < 40) {
           throw new ExtractError(
@@ -56,6 +76,7 @@ export default function SourcePanel({
           );
         }
         setLoaded({ name: file.name, text });
+        onImages([]);
         onSource(text);
       } catch (err) {
         setLoaded(null);
@@ -67,7 +88,7 @@ export default function SourcePanel({
         setReading(false);
       }
     },
-    [onSource],
+    [onSource, onImages, images],
   );
 
   const clear = useCallback(() => {
@@ -75,6 +96,14 @@ export default function SourcePanel({
     onSource("");
     if (inputRef.current) inputRef.current.value = "";
   }, [onSource]);
+
+  const dropImage = useCallback(
+    (name: string) => {
+      onImages(images.filter((i) => i.name !== name));
+      if (inputRef.current) inputRef.current.value = "";
+    },
+    [images, onImages],
+  );
 
   return (
     <section className="card" aria-labelledby="srcH">
@@ -118,9 +147,16 @@ export default function SourcePanel({
                 void handleFile(e.dataTransfer.files[0]);
               }}
             >
-              <span className="drop-t">{reading ? "Reading the file" : "Drop a lecture file"}</span>
+              <span className="drop-t">
+                {reading
+                  ? "Reading it"
+                  : images.length
+                    ? "Add another photograph"
+                    : "Drop a lecture file, or a photo of the board"}
+              </span>
               <span className="drop-h">
-                Slide decks, handouts, chapter exports. Or click to browse.
+                Slide decks, handouts, chapter exports, or a photograph of a whiteboard or your own
+                handwriting. Or click to browse.
               </span>
               <div className="fmts">
                 {FORMATS.map((f) => (
@@ -135,10 +171,29 @@ export default function SourcePanel({
               id="file"
               type="file"
               className="sr"
-              accept=".pdf,.docx,.pptx,.txt,.md,.markdown"
+              accept=".pdf,.docx,.pptx,.txt,.md,.markdown,image/png,image/jpeg,image/webp"
               onChange={(e) => void handleFile(e.target.files?.[0])}
             />
           </>
+        )}
+
+        {mode === "file" && images.length > 0 && (
+          <div className="shots">
+            {images.map((img) => (
+              <figure className="shot" key={img.name}>
+                {/* Local data URL, sized in the browser. next/image would add a
+                    loader for no benefit here. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={img.preview} alt={`Page to read: ${img.name}`} />
+                <figcaption>
+                  <span>{img.name}</span>
+                  <button type="button" onClick={() => dropImage(img.name)}>
+                    Remove
+                  </button>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
         )}
 
         {mode === "file" && loaded && (
@@ -241,7 +296,9 @@ export default function SourcePanel({
           {busy ? "Working" : reading ? "Reading the file" : "Make revision notes"}
         </button>
         <p className="field-help">
-          The file is read in this browser. Only the extracted text is sent to Gemini.
+          {images.length
+            ? "Photographs are sized down in this browser, then read by Gemini. Nothing is stored."
+            : "The file is read in this browser. Only the extracted text is sent to Gemini."}
         </p>
       </div>
     </section>

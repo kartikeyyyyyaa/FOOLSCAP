@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import LevelPicker from "./LevelPicker";
+import type { Level } from "@/lib/prompt";
 import type { ExplainResponse, Reel, RevisionSheet } from "@/lib/types";
 
 interface Props {
@@ -22,6 +24,7 @@ export default function ExplainerReel({ sheet, isSample }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [long, setLong] = useState(false);
+  const [level, setLevel] = useState<Level>("plain");
 
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -83,7 +86,7 @@ export default function ExplainerReel({ sheet, isSample }: Props) {
       const res = await fetch("/api/explain", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sheet, length: long ? "long" : "short" }),
+        body: JSON.stringify({ sheet, length: long ? "long" : "short", level }),
       });
       const payload: ExplainResponse = await res.json();
 
@@ -97,7 +100,7 @@ export default function ExplainerReel({ sheet, isSample }: Props) {
     } finally {
       setBusy(false);
     }
-  }, [busy, sheet, long, stopAll]);
+  }, [busy, sheet, long, level, stopAll]);
 
   /* ---------------------------------------------------------------- *
    * Playback. One effect owns the clock, the voice and the teardown,
@@ -223,6 +226,8 @@ export default function ExplainerReel({ sheet, isSample }: Props) {
             <span>{error}</span>
           </div>
         )}
+
+        <LevelPicker value={level} onChange={setLevel} disabled={busy} />
 
         <div className="reel-start">
           <div className="seg" role="group" aria-label="Length">

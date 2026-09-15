@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { GeminiError, NO_KEY, apiKey, callJson } from "@/lib/gemini";
-import { REEL_SCHEMA, buildReelPrompt, sheetDigest } from "@/lib/prompt";
+import { REEL_SCHEMA, asLevel, buildReelPrompt, sheetDigest } from "@/lib/prompt";
 import type { ExplainResponse, Reel, ReelScene, RevisionSheet } from "@/lib/types";
 
 /**
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
   const key = apiKey();
   if (!key) return fail(NO_KEY, 500);
 
-  let body: { sheet?: RevisionSheet; length?: string };
+  let body: { sheet?: RevisionSheet; length?: string; level?: string };
   try {
     body = await request.json();
   } catch {
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
   try {
     const parsed = await callJson<Reel>({
       apiKey: key,
-      prompt: buildReelPrompt(sheetDigest(sheet), minutes),
+      prompt: buildReelPrompt(sheetDigest(sheet), minutes, asLevel(body.level)),
       schema: REEL_SCHEMA,
       temperature: 0.55,
       maxOutputTokens: minutes > 2 ? 16384 : 10240,
